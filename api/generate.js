@@ -1,7 +1,7 @@
 // api/generate.js
 // POST { resumeText, jobDesc }
 // Returns { beforeScore, afterScore, keywordsFound, keywordsMissing, feedback, optimizedResume, coverLetter }
-// Model: deepseek/deepseek-chat-v3-0324:free via OpenRouter
+// Model: meta-llama/llama-3.3-70b-instruct:free via OpenRouter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Job description too short.' });
 
   const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-  const MODEL          = 'deepseek/deepseek-chat-v3-0324:free';
+  const MODEL          = 'meta-llama/llama-3.3-70b-instruct:free';
 
   const headers = {
     'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
