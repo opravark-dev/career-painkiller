@@ -1,6 +1,7 @@
 // api/generate.js
 // POST { resumeText, jobDesc }
 // Returns { beforeScore, afterScore, keywordsFound, keywordsMissing, feedback, optimizedResume, coverLetter }
+// Model: deepseek/deepseek-chat-v3-0324:free via OpenRouter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -13,96 +14,85 @@ export default async function handler(req, res) {
   if (!jobDesc || jobDesc.trim().length < 100)
     return res.status(400).json({ error: 'Job description too short.' });
 
+  const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+  const MODEL          = 'deepseek/deepseek-chat-v3-0324:free';
+
   const headers = {
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.ANTHROPIC_API_KEY,
-    'anthropic-version': '2023-06-01',
+    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    'Content-Type':  'application/json',
   };
 
+  // Helper: call OpenRouter and return plain text response
+  async function ask(prompt) {
+    const r = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    return d.choices?.[0]?.message?.content || '';
+  }
+
+  // Helper: extract first JSON object from a string (handles markdown fences)
+  function parseJSON(raw) {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON object found in response');
+    return JSON.parse(match[0]);
+  }
+
   try {
-    // ── STEP A: ATS Analysis (Haiku — fast & cheap) ──
-    const atsPrompt = `You are an ATS expert. Score this resume against the job description.
-Return ONLY valid JSON, no explanation, no markdown:
+    // ── STEP A: ATS Analysis ──────────────────────────────────────────────────
+    const atsRaw = await ask(`You are an ATS expert. Score this resume against the job description.
+Return ONLY valid JSON — no explanation, no markdown fences:
 {
   "before_score": <integer 0-100, honest current ATS match>,
-  "after_score": <integer 0-100, projected after optimisation>,
-  "keywords_found": ["keyword1", "keyword2", "keyword3"],
+  "after_score":  <integer 0-100, projected score after AI optimisation>,
+  "keywords_found":   ["keyword1", "keyword2", "keyword3"],
   "keywords_missing": ["keyword1", "keyword2", "keyword3"],
-  "feedback": ["tip1", "tip2", "tip3"]
+  "feedback": ["actionable tip 1", "actionable tip 2", "actionable tip 3"]
 }
 
 Resume:
 ${resumeText.slice(0, 2000)}
 
 Job Description:
-${jobDesc.slice(0, 2000)}`;
+${jobDesc.slice(0, 2000)}`);
 
-    const atsRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        messages: [{ role: 'user', content: atsPrompt }],
-      }),
-    });
-    const atsData = await atsRes.json();
-    if (atsData.error) throw new Error(atsData.error.message);
-    const atsRaw = atsData.content?.find(b => b.type === 'text')?.text || '';
-    const atsMatch = atsRaw.match(/\{[\s\S]*\}/);
-    if (!atsMatch) throw new Error('ATS parse failed');
-    const ats = JSON.parse(atsMatch[0]);
+    const ats = parseJSON(atsRaw);
 
-    // ── STEP B: Resume Rewrite (Sonnet — quality) ──
-    const resumePrompt = `You are an expert resume writer and ATS specialist.
+    // ── STEP B: Resume Rewrite ────────────────────────────────────────────────
+    const optimizedResume = await ask(`You are an expert resume writer and ATS specialist.
 Rewrite the candidate's resume to be fully optimised for the job description below.
 
 Rules:
-- Extract and preserve ALL real experience, skills, education from the old resume
+- Extract and preserve ALL real experience, skills, and education from the old resume
 - Never fabricate or exaggerate anything
 - Naturally integrate these missing keywords: ${(ats.keywords_missing || []).join(', ')}
-- Use strong action verbs, quantify achievements where evidence exists
+- Use strong action verbs; quantify achievements where evidence exists in the original
 - Sections in this order: PROFESSIONAL SUMMARY, CORE SKILLS, WORK EXPERIENCE, EDUCATION
 - Plain text only — use - for bullet points, no markdown, no symbols
-- Output the resume only, no preamble or explanation
+- Output the resume text only, no preamble or explanation
 
 Old Resume:
 ${resumeText.slice(0, 4000)}
 
 Target Job Description:
-${jobDesc.slice(0, 2000)}`;
+${jobDesc.slice(0, 2000)}`);
 
-    const resumeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: resumePrompt }],
-      }),
-    });
-    const resumeData = await resumeRes.json();
-    if (resumeData.error) throw new Error(resumeData.error.message);
-    const optimizedResume = resumeData.content?.find(b => b.type === 'text')?.text || '';
-
-    // ── STEP C: Cover Letter (Haiku — premium, keep cheap) ──
-    const clPrompt = `Write a concise professional 3-paragraph cover letter based on this resume for this job.
+    // ── STEP C: Cover Letter ──────────────────────────────────────────────────
+    const coverLetter = await ask(`Write a concise professional 3-paragraph cover letter for this candidate applying to this job.
 Paragraph 1: Why they want this specific role and company.
-Paragraph 2: Most relevant experience and one key achievement.
-Paragraph 3: Short call to action. Sign off with "Sincerely," and their name if visible, else "Sincerely, [Your Name]".
+Paragraph 2: Their most relevant experience and one key achievement.
+Paragraph 3: Short call to action. Sign off with "Sincerely," and their name if visible in the resume, otherwise "Sincerely, [Your Name]".
 Output the letter only — no subject line, no preamble.
 
 Resume: ${resumeText.slice(0, 1500)}
-Job: ${jobDesc.slice(0, 1000)}`;
-
-    const clRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers,
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        messages: [{ role: 'user', content: clPrompt }],
-      }),
-    });
-    const clData = await clRes.json();
-    const coverLetter = clData.content?.find(b => b.type === 'text')?.text || '';
+Job Description: ${jobDesc.slice(0, 1000)}`);
 
     return res.status(200).json({
       beforeScore:     ats.before_score,
