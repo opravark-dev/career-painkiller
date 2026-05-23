@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Job description too short.' });
 
   const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-  const MODEL          = 'meta-llama/llama-3.3-70b-instruct:free';
+  const MODEL          = 'google/gemma-2-9b-it:free'; // meta-llama/llama-3.3-70b-instruct:free also good for testing
 
   const headers = {
     'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
