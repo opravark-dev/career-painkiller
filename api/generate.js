@@ -1,7 +1,7 @@
 // api/generate.js
 // POST { resumeText, jobDesc }
 // Returns { beforeScore, afterScore, keywordsFound, keywordsMissing, feedback, optimizedResume, coverLetter }
-// Model: meta-llama/llama-3.1-8b-instruct:free via OpenRouter
+// Model: openchat/openchat-7b:free via OpenRouter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Job description too short.' });
 
   const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-  const MODEL          = 'meta-llama/llama-3.1-8b-instruct:free';
+  const MODEL          = 'openchat/openchat-7b:free';
 
   const headers = {
     'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -33,8 +33,18 @@ export default async function handler(req, res) {
       }),
     });
     const d = await r.json();
-    if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-    return d.choices?.[0]?.message?.content || '';
+
+console.log(d);
+
+if (!r.ok) {
+  return res.status(500).json(d);
+}
+
+if (d.error) {
+  throw new Error(d.error.message || JSON.stringify(d.error));
+}
+
+return d.choices?.[0]?.message?.content || '';
   }
 
   // Helper: extract first JSON object from a string (handles markdown fences)
