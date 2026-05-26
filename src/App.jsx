@@ -75,28 +75,29 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDesc }),
       });
-const raw = await res.text();
+      const raw = await res.text();
 
-console.log(raw);
+      if (!res.ok) {
+        try {
+          const errData = JSON.parse(raw);
+          throw new Error(errData.error || 'Generation failed');
+        } catch {
+          throw new Error(raw || 'Generation failed');
+        }
+      }
 
-if (!res.ok) {
-  throw new Error(raw || 'Generation failed');
-}
+      const parsed = JSON.parse(raw);
+      if (!parsed.success) throw new Error(parsed.error || 'Generation failed');
 
-setResults(raw);
-setStep(2);
-
-} catch (e) {
-  console.error(e);
-
-  setErr(
-    e?.message ||
-    'Something went wrong. Please try again.'
-  );
-}
-
-setLoading(false);
+      setResults(parsed);
+      setStep(2);
+    } catch (e) {
+      console.error(e);
+      setErr(e?.message || 'Something went wrong. Please try again.');
+    }
+    setLoading(false);
   };
+
   const reset = () => {
     setStep(0); setResults(null); setResumeText('');
     setJobDesc(''); setShowCover(false); setErr('');
@@ -167,8 +168,8 @@ setLoading(false);
                   whiteSpace: 'nowrap',
                   color: i === step ? t.accent : i < step ? t.green : t.textMuted }}>
                   {l}
-                </span>
-              </div>
+                </span
+              </div}
               {i < STEPS.length - 1 && (
                 <div style={{ width: 14, height: 1,
                   background: i < step ? t.green : t.border,
@@ -258,8 +259,8 @@ setLoading(false);
               <p style={{ fontSize: 11, fontWeight: 600, color: t.textMuted, margin: '0 0 14px',
                 textTransform: 'uppercase', letterSpacing: '0.06em' }}>ATS Match Score</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <ATSBar score={results.beforeScore} label="Your original resume" t={t} />
-                <ATSBar score={results.afterScore}  label="After AI optimisation" t={t} />
+                <ATSBar score={results.data?.originalScore || 0} label="Your original resume" t={t} />
+                <ATSBar score={results.data?.optimizedScore || 0}  label="After AI optimisation" t={t} />
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
                 <div style={{ flex: 1, background: t.greenBg, borderRadius: 8, padding: '10px 12px' }}>
@@ -267,7 +268,7 @@ setLoading(false);
                     ✅ Found
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {results.keywordsFound?.map(k =>
+                    {(results.data?.foundKeywords || []).map(k =>
                       <Badge key={k} color="green" t={t}>{k}</Badge>)}
                   </div>
                 </div>
@@ -276,14 +277,14 @@ setLoading(false);
                     ❌ Missing (added in optimised resume)
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {results.keywordsMissing?.map(k =>
+                    {(results.data?.missingKeywords || []).map(k =>
                       <Badge key={k} color="red" t={t}>{k}</Badge>)}
                   </div>
                 </div>
               </div>
-              {results.feedback?.length > 0 && (
+              {results.data?.feedback?.length > 0 && (
                 <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {results.feedback.map((f, i) => (
+                  {results.data.feedback.map((f, i) => (
                     <div key={i} style={{ display: 'flex', gap: 8, background: t.elevated,
                       borderRadius: 8, padding: '8px 10px' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: t.accent,
@@ -306,10 +307,10 @@ setLoading(false);
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Btn variant="secondary" small t={t}
-                    onClick={() => navigator.clipboard.writeText(results.optimizedResume)
+                    onClick={() => navigator.clipboard.writeText(results.data?.optimizedResume || '')
                       .then(() => alert('Copied!'))}>Copy</Btn>
                   <Btn variant="secondary" small t={t}
-                    onClick={() => downloadTxt(results.optimizedResume, 'Optimised_Resume.txt')}>
+                    onClick={() => downloadTxt(results.data?.optimizedResume || '', 'Optimised_Resume.txt')}>
                     TXT ↓
                   </Btn>
                 </div>
@@ -317,7 +318,7 @@ setLoading(false);
               <div style={{ padding: '14px 16px', position: 'relative', overflow: 'hidden' }}>
                 <pre style={{ fontSize: 12, lineHeight: 1.7, color: t.textSub,
                   whiteSpace: 'pre-wrap', fontFamily: "'SF Mono','Fira Mono',monospace",
-                  margin: 0 }}>{results.optimizedResume}</pre>
+                  margin: 0 }}>{results.data?.optimizedResume || ''}</pre>
                 <div style={{ position: 'absolute', top: '50%', left: '50%',
                   transform: 'translate(-50%,-50%) rotate(-30deg)', fontSize: 34,
                   fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap',
@@ -344,11 +345,11 @@ setLoading(false);
                   fontFamily: 'inherit', fontWeight: 500 }}>
                   {showCover ? 'Hide ↑' : 'Preview ↓'}
                 </button>
-              </div>
+              </div}
               {showCover && (
                 <pre style={{ fontSize: 12, lineHeight: 1.8, color: t.textSub,
                   whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
-                  {results.coverLetter}
+                  {results.data?.coverLetter || ''}
                 </pre>
               )}
             </div>

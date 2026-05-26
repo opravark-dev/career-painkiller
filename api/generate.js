@@ -157,17 +157,23 @@ Job Description: ${jobDesc.slice(0, 1000)}`);
     const coverLetter = resCover.data;
 
     return res.status(200).json({
-      beforeScore:     ats.before_score,
-      afterScore:      ats.after_score,
-      keywordsFound:   ats.keywords_found   || [],
-      keywordsMissing: ats.keywords_missing || [],
-      feedback:        ats.feedback         || [],
-      optimizedResume,
-      coverLetter,
+      success: true,
+      data: {
+        optimizedResume: optimizedResume || '',
+        originalScore: ats.before_score || 0,
+        optimizedScore: ats.after_score || 0,
+        foundKeywords: ats.keywords_found || [],
+        missingKeywords: ats.keywords_missing || [],
+        coverLetter: coverLetter || '',
+        feedback: ats.feedback || []
+      }
     });
 
   } catch (err) {
     console.error('[generate] Critical failure:', err.message);
-    return res.status(500).json({ error: err.message || 'Generation failed' });
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Generation failed'
+    });
   }
 }
