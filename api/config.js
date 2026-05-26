@@ -1,1 +1,1 @@
-export const MODEL = 'nmeta-llama/llama-3.1-8b-instruct:free';
+export const MODEL = 'google/gemma-3-27b-it:free';
