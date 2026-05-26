@@ -1,1 +1,1 @@
-export const MODEL = 'mistralai/mistral-7b-instruct:free';
+export const MODEL = 'openchat/openchat-7b:free';
