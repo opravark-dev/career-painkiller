@@ -1,1 +1,1 @@
-export const MODEL = 'google/gemma-3-27b-it:free';
+export const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
