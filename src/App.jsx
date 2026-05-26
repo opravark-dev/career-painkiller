@@ -75,16 +75,28 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDesc }),
       });
-      const data = await res.text();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
-      setResults(data);
-      setStep(2);
-    } catch (e) {
-      setErr(e.message || 'Something went wrong. Please try again.');
-    }
-    setLoading(false);
-  };
+const raw = await res.text();
 
+console.log(raw);
+
+if (!res.ok) {
+  throw new Error(raw || 'Generation failed');
+}
+
+setResults(raw);
+setStep(2);
+
+} catch (e) {
+  console.error(e);
+
+  setErr(
+    e?.message ||
+    'Something went wrong. Please try again.'
+  );
+}
+
+setLoading(false);
+  };
   const reset = () => {
     setStep(0); setResults(null); setResumeText('');
     setJobDesc(''); setShowCover(false); setErr('');
