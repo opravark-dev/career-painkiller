@@ -75,16 +75,9 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDesc }),
       });
-      const text = await res.text();
-      if (!res.ok) {
-        try {
-          const errData = JSON.parse(text);
-          throw new Error(errData.error || 'Generation failed');
-        } catch {
-          throw new Error(text || 'Generation failed');
-        }
-      }
-      setResults(JSON.parse(text));
+      const data = await res.text();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+      setResults(data);
       setStep(2);
     } catch (e) {
       setErr(e.message || 'Something went wrong. Please try again.');
