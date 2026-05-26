@@ -1,7 +1,4 @@
-// api/generate.js
-// POST { resumeText, jobDesc }
-// Returns { beforeScore, afterScore, keywordsFound, keywordsMissing, feedback, optimizedResume, coverLetter }
-// Model: openchat/openchat-7b:free via OpenRouter
+import { MODEL } from './config';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -15,39 +12,31 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Job description too short.' });
 
   const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-  const MODEL          = 'openchat/openchat-7b:free';
 
-  const headers = {
-    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-    'Content-Type':  'application/json',
-  };
-
-  // Helper: call OpenRouter and return plain text response
   async function ask(prompt) {
-    const r = await fetch(OPENROUTER_URL, {
+    const response = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers,
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://career-painkiller.vercel.app',
+        'X-Title': 'Career Painkiller'
+      },
       body: JSON.stringify({
         model: MODEL,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
-    const d = await r.json();
 
-console.log(d);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `OpenRouter error: ${response.status}`);
+    }
 
-if (!r.ok) {
-  return res.status(500).json(d);
-}
-
-if (d.error) {
-  throw new Error(d.error.message || JSON.stringify(d.error));
-}
-
-return d.choices?.[0]?.message?.content || '';
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
   }
 
-  // Helper: extract first JSON object from a string (handles markdown fences)
   function parseJSON(raw) {
     const clean = raw.replace(/```json|```/g, '').trim();
     const match = clean.match(/\{[\s\S]*\}/);
@@ -56,7 +45,6 @@ return d.choices?.[0]?.message?.content || '';
   }
 
   try {
-    // ── STEP A: ATS Analysis ──────────────────────────────────────────────────
     const atsRaw = await ask(`You are an ATS expert. Score this resume against the job description.
 Return ONLY valid JSON — no explanation, no markdown fences:
 {
@@ -75,7 +63,6 @@ ${jobDesc.slice(0, 2000)}`);
 
     const ats = parseJSON(atsRaw);
 
-    // ── STEP B: Resume Rewrite ────────────────────────────────────────────────
     const optimizedResume = await ask(`You are an expert resume writer and ATS specialist.
 Rewrite the candidate's resume to be fully optimised for the job description below.
 
@@ -94,7 +81,6 @@ ${resumeText.slice(0, 4000)}
 Target Job Description:
 ${jobDesc.slice(0, 2000)}`);
 
-    // ── STEP C: Cover Letter ──────────────────────────────────────────────────
     const coverLetter = await ask(`Write a concise professional 3-paragraph cover letter for this candidate applying to this job.
 Paragraph 1: Why they want this specific role and company.
 Paragraph 2: Their most relevant experience and one key achievement.
