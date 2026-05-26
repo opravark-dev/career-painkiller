@@ -75,7 +75,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDesc }),
       });
-      const data = await res.json();
+      const data = await res.text();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       setResults(data);
       setStep(2);
@@ -261,7 +261,7 @@ export default function App() {
                 </div>
                 <div style={{ flex: 1, background: t.redBg, borderRadius: 8, padding: '10px 12px' }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: t.redText, margin: '0 0 6px' }}>
-                    ⚠️ Missing
+                    ❌ Missing (added in optimised resume)
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {results.keywordsMissing?.map(k =>
