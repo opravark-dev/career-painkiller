@@ -1,4 +1,4 @@
-import { MODEL } from './config';
+import { MODEL } from './config.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
