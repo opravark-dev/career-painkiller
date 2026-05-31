@@ -168,8 +168,8 @@ export default function App() {
                   whiteSpace: 'nowrap',
                   color: i === step ? t.accent : i < step ? t.green : t.textMuted }}>
                   {l}
-                </span
-              </div}
+                </span>
+</div>
               {i < STEPS.length - 1 && (
                 <div style={{ width: 14, height: 1,
                   background: i < step ? t.green : t.border,
@@ -345,7 +345,7 @@ export default function App() {
                   fontFamily: 'inherit', fontWeight: 500 }}>
                   {showCover ? 'Hide ↑' : 'Preview ↓'}
                 </button>
-              </div}
+              </div>
               {showCover && (
                 <pre style={{ fontSize: 12, lineHeight: 1.8, color: t.textSub,
                   whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>

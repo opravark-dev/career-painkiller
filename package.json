@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "vercel": "^50.41.0",
+    "vercel": "^54.6.1",
     "vite": "^7.3.3"
   }
 }
