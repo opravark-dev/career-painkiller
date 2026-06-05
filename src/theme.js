@@ -1,23 +1,27 @@
+const DARK_THEME = {
+  bg: '#0F172A',  surface: '#1E293B',  elevated: '#263348',
+  border: '#334155',  borderSub: '#2D3F55',
+  text: '#F1F5F9',  textSub: '#94A3B8',  textMuted: '#64748B',
+  accent: '#3B82F6',  accentHov: '#2563EB',
+  accentBg: '#1E3A5F',  accentText: '#93C5FD',
+  green: '#22C55E',  greenBg: '#14532D',  greenText: '#86EFAC',
+  amber: '#F59E0B',  amberBg: '#451A03',  amberText: '#FCD34D',
+  red: '#EF4444',    redBg: '#450A0A',    redText: '#FCA5A5',
+  inputBg: '#1E293B',
+};
+
+const LIGHT_THEME = {
+  bg: '#F8FAFC',  surface: '#FFFFFF',  elevated: '#F1F5F9',
+  border: '#E2E8F0',  borderSub: '#CBD5E1',
+  text: '#0F172A',  textSub: '#475569',  textMuted: '#94A3B8',
+  accent: '#2563EB',  accentHov: '#1D4ED8',
+  accentBg: '#EFF6FF',  accentText: '#1D4ED8',
+  green: '#16A34A',  greenBg: '#F0FDF4',  greenText: '#15803D',
+  amber: '#D97706',  amberBg: '#FFFBEB',  amberText: '#B45309',
+  red: '#DC2626',    redBg: '#FFF1F1',    redText: '#B91C1C',
+  inputBg: '#FFFFFF',
+};
+
 export function getT(dark) {
-  return dark ? {
-    bg: '#0F172A',  surface: '#1E293B',  elevated: '#263348',
-    border: '#334155',  borderSub: '#2D3F55',
-    text: '#F1F5F9',  textSub: '#94A3B8',  textMuted: '#64748B',
-    accent: '#3B82F6',  accentHov: '#2563EB',
-    accentBg: '#1E3A5F',  accentText: '#93C5FD',
-    green: '#22C55E',  greenBg: '#14532D',  greenText: '#86EFAC',
-    amber: '#F59E0B',  amberBg: '#451A03',  amberText: '#FCD34D',
-    red: '#EF4444',    redBg: '#450A0A',    redText: '#FCA5A5',
-    inputBg: '#1E293B',
-  } : {
-    bg: '#F8FAFC',  surface: '#FFFFFF',  elevated: '#F1F5F9',
-    border: '#E2E8F0',  borderSub: '#CBD5E1',
-    text: '#0F172A',  textSub: '#475569',  textMuted: '#94A3B8',
-    accent: '#2563EB',  accentHov: '#1D4ED8',
-    accentBg: '#EFF6FF',  accentText: '#1D4ED8',
-    green: '#16A34A',  greenBg: '#F0FDF4',  greenText: '#15803D',
-    amber: '#D97706',  amberBg: '#FFFBEB',  amberText: '#B45309',
-    red: '#DC2626',    redBg: '#FFF1F1',    redText: '#B91C1C',
-    inputBg: '#FFFFFF',
-  };
+  return dark ? DARK_THEME : LIGHT_THEME;
 }
