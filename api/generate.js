@@ -131,16 +131,22 @@ ${jobDesc.slice(0, 2000)}`);
 
     // ── STEP B: Resume Rewrite ────────────────────────────────────────────────
     const resRewrite = await ask(`You are an expert resume writer and ATS specialist.
-Rewrite the candidate's resume to be fully optimised for the job description below.
+Rewrite the candidate's resume to be a recruiter-ready, professionally formatted ATS resume optimized for the job description below.
 
-Rules:
-- Extract and preserve ALL real experience, skills, and education from the old resume
-- Never fabricate or exaggerate anything
-- Naturally integrate these missing keywords: ${(ats.keywords_missing || []).join(', ')}
-- Use strong action verbs; quantify achievements where evidence exists in the original
-- Sections in this order: PROFESSIONAL SUMMARY, CORE SKILLS, WORK EXPERIENCE, EDUCATION
-- Plain text only — use - for bullet points, no markdown, no symbols
-- Output the resume text only, no preamble or explanation
+Strict Formatting Rules:
+- PRESERVE all section headings, bullet points, dates, employer names, and chronology.
+- Use a professional, clean structure.
+- NEVER return paragraphs where bullet points are expected (e.g., in the Experience section).
+- Use a clear, consistent format: [Job Title] | [Company] | [Dates]
+- Output the resume text only, no preamble or explanation.
+
+Optimization Rules:
+- Extract and preserve ALL real experience, skills, and education from the old resume.
+- Never fabricate or exaggerate details.
+- Naturally integrate these missing keywords: ${(ats.keywords_missing || []).join(', ')}.
+- Use strong action verbs and quantify achievements where evidence exists.
+- Maintain high readability: keep bullet points concise and impactful.
+- Ensure the final output is concise, scannable, and recruiter-friendly.
 
 Old Resume:
 ${resumeText.slice(0, 4000)}

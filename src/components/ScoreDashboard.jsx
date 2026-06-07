@@ -1,22 +1,16 @@
 import React from 'react';
+import { calculateFormattingScore, calculateReadabilityScore } from '../utils/scoring';
 
 export function ScoreDashboard({ data, t }) {
-  const { originalScore = 0, optimizedScore = 0, foundKeywords = [], missingKeywords = [], feedback = [] } = data;
+  const { originalScore = 0, optimizedScore = 0, foundKeywords = [], missingKeywords = [], feedback = [], optimizedResume = '' } = data;
 
   const totalKeywords = foundKeywords.length + missingKeywords.length;
   const keywordMatchScore = totalKeywords > 0
     ? Math.round((foundKeywords.length / totalKeywords) * 100)
     : 0;
 
-  // Heuristic for Readability and Formatting scores based on AI feedback
-  const checkFeedbackFor = (keywords) =>
-    feedback.some(f => keywords.some(k => f.toLowerCase().includes(k)));
-
-  const isFormattingIssue = checkFeedbackFor(['formatting', 'layout', 'structure', 'bullet', 'font']);
-  const isReadabilityIssue = checkFeedbackFor(['quantifiable', 'metrics', 'vague', 'stronger verbs', 'impact']);
-
-  const formattingScore = isFormattingIssue ? 75 : 98;
-  const readabilityScore = isReadabilityIssue ? 70 : 92;
+  const formattingScore = calculateFormattingScore(optimizedResume);
+  const readabilityScore = calculateReadabilityScore(optimizedResume);
 
   const metrics = [
     { label: 'ATS Match', value: optimizedScore, color: t.accent, icon: '🎯' },
