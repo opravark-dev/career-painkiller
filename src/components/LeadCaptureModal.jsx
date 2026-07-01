@@ -3,13 +3,15 @@ import { Btn } from './Btn';
 
 export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
   // Reset state every time the modal is opened so a previous submission
-  // never leaks its email/consent into the next one.
+  // never leaks its email/consent/name into the next one.
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setName('');
       setEmail('');
       setConsent(false);
       setLoading(false);
@@ -23,7 +25,9 @@ export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
     if (!trimmedEmail || !consent) return;
     setLoading(true);
 
+    const trimmedName = (name || '').trim();
     const payload = {
+      name: trimmedName,
       email: trimmedEmail,
       consent: true,
       score: typeof score === 'number' ? score : 0,
@@ -45,11 +49,11 @@ export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
       if (!res.ok || (parsed && parsed.success === false)) {
         throw new Error(parsed?.error || `Lead endpoint returned ${res.status}`);
       }
-      onComplete(trimmedEmail);
+      onComplete(trimmedEmail, trimmedName);
     } catch (e) {
       console.error('[LeadCapture] error:', e);
       // We still complete the flow so the user can download their resume.
-      onComplete(trimmedEmail);
+      onComplete(trimmedEmail, trimmedName);
     } finally {
       setLoading(false);
     }
@@ -67,7 +71,7 @@ export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
       backdropFilter: 'blur(4px)',
       padding: '20px'
     }}>
-      <div style={{
+      <div className="modal-panel" style={{
         background: t.surface,
         border: `1px solid ${t.border}`,
         borderRadius: 24,
@@ -101,10 +105,33 @@ export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'left' }}>
           <div style={{ position: 'relative' }}>
             <input
+              type="text"
+              placeholder="Your name (optional)"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              autoComplete="name"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: 10,
+                border: `1px solid ${t.border}`,
+                background: t.elevated,
+                color: t.text,
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+              onFocus={e => e.target.style.borderColor = t.accent}
+              onBlur={e => e.target.style.borderColor = t.border}
+            />
+          </div>
+          <div style={{ position: 'relative' }}>
+            <input
               type="email"
               placeholder="email@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
               style={{
                 width: '100%',
                 padding: '12px 16px',

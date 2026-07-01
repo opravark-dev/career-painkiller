@@ -166,32 +166,50 @@ ${jobDesc.slice(0, 2000)}`);
     const resRewrite = await ask(`You are an expert resume writer and ATS specialist.
 Rewrite the candidate's resume into a recruiter-ready, ATS-optimized resume tailored to the job description.
 
-STRICT SECTION STRUCTURE (use exactly these section names, in this order, when content exists):
+ABSOLUTE TOP-OF-DOCUMENT RULES (NON-NEGOTIABLE):
+- Line 1: the candidate's FULL NAME exactly as it appears in the original resume.
+- Lines 2–4 (immediately below the name): contact information only — email, phone, city/region, LinkedIn or portfolio URL, one per line.
+- Line 5: a single blank line.
+- The SUMMARY section MUST appear directly below the contact information, before any other section.
+- The candidate's name MUST stay at the top. It must NEVER be moved into Experience, Skills, Education, or any other section.
+
+STRICT SECTION ORDER (use exactly these section names, in this order, only when the corresponding content exists):
 1. SUMMARY
 2. CORE SKILLS
 3. PROFESSIONAL EXPERIENCE
 4. EDUCATION
 5. CERTIFICATIONS
 
+Do NOT add any other section. Specifically, do NOT create "Professional Affiliations", "Additional Experience", "Other Experience", "Related Experience", "Selected Projects", "Awards" (unless no other certification slot exists), "Languages", "Interests", or "Volunteer Experience" — if the source has no Certifications, omit that header entirely.
+
 WORK-EXPERIENCE RULES (CRITICAL):
 - All paid work, internships, consulting, contract, freelance, and independent contractor roles MUST live under "PROFESSIONAL EXPERIENCE" — never under any other section.
-- NEVER create sections called "Professional Affiliations", "Additional Experience", "Other Experience", "Related Experience", or "Selected Projects" for actual work history.
-- If a role could plausibly be work experience, place it under PROFESSIONAL EXPERIENCE.
-- Order ALL experience entries REVERSE CHRONOLOGICALLY (most recent role first).
-- Preserve the original employer / company name EXACTLY as written.
+- Order ALL experience entries REVERSE CHRONOLOGICALLY (most recent role first). The most recent role's start date MUST be the largest of all listed dates.
+- Preserve the original employer / company name EXACTLY as written. Do not abbreviate, do not translate, do not modernize.
 - Preserve original date ranges (e.g., "Nov 2023 – Present", "2019 – 2022") EXACTLY as written.
 - Use the format on a single line: [Job Title] | [Company] | [Dates]
 - Write 3–6 concise bullet points per role. Bullets MUST start with "-" or "•".
 - Do NOT convert experience into paragraphs. Bullets only under Professional Experience.
 
+EDUCATION & CERTIFICATIONS:
+- Education must appear AFTER Professional Experience.
+- Certifications must appear AFTER Education.
+- Preserve degree names, institutions, and graduation years EXACTLY as written.
+- Do NOT invent any degree, institution, or certification that is not in the original.
+
+FACTUAL INTEGRITY (NON-NEGOTIABLE):
+- NEVER fabricate employers, dates, degrees, certifications, or technologies.
+- Every claim in the rewrite must be supported by the original resume. If something is not in the original, omit it — do not invent.
+- Do not move the candidate's name, email, phone, or city into a different field or section.
+
 ATS / CONTENT RULES:
 - Naturally weave these missing keywords into bullets where they fit truthfully: ${(atsOriginal.keywords_missing || []).join(', ')}
 - Use strong action verbs and quantify achievements where the original resume provides evidence.
-- NEVER fabricate employers, dates, degrees, certifications, or technologies.
 - Keep bullets scannable: aim for 12–22 words each.
 
 OUTPUT RULES:
 - Output the resume text only. No preamble. No markdown fences. No "Here is the resume:".
+- Preserve bullet points exactly as bullets — do not convert them to prose.
 
 Original Resume:
 ${resumeText.slice(0, 4000)}

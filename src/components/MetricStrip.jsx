@@ -4,7 +4,7 @@ import React from 'react';
 export function MetricStrip({ items, t }) {
   if (!items || items.length === 0) return null;
   return (
-    <div style={{
+    <div className="resume-metric-grid" style={{
       display: 'grid',
       gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
       gap: 8,

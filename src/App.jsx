@@ -19,8 +19,10 @@ import { LeadCaptureModal } from './components/LeadCaptureModal';
 import { UpgradeModal }   from './components/UpgradeModal';
 import { MetricStrip } from './components/MetricStrip';
 import { AnalysisReport } from './components/AnalysisReport';
+import { AINotice } from './components/AINotice';
 import { trackEvent }   from './utils/analytics';
 import { calculateFormattingScore, calculateReadabilityScore } from './utils/scoring';
+import { getOptimizationRating } from './utils/rating';
 import {
   downloadTxt,
   downloadResumeDocx, downloadResumePdf,
@@ -63,6 +65,7 @@ export default function App() {
   const [pendingDownload, setPendingDownload] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [capturedEmail, setCapturedEmail] = useState('');
+  const [capturedName,  setCapturedName]  = useState('');
 
   // Upload + extract PDF text (browser-side)
   const handleFile = async (e) => {
@@ -129,22 +132,25 @@ export default function App() {
   };
 
   // Build a comprehensive analysis-report object once, then reuse.
+  // Source of truth for every score shown in Dashboard, Analysis Report,
+  // Metric Strip, and Analysis Report downloads. Cover-letter metrics are
+  // derived from the same `data` payload (same response, same numbers).
   const buildReport = (data) => {
     if (!data) return null;
     const optimizedResume = data.optimizedResume || '';
+    const optimizedScore = data.optimizedScore ?? 0;
     return {
       originalScore: data.originalScore ?? 0,
-      optimizedScore: data.optimizedScore ?? 0,
+      optimizedScore,
       originalKeywordMatch: data.originalKeywordMatch ?? 0,
       optimizedKeywordMatch: data.optimizedKeywordMatch ?? 0,
       readability: calculateReadabilityScore(optimizedResume),
       formatting: calculateFormattingScore(optimizedResume),
       feedback: data.feedback || [],
-      rating: (data.optimizedScore ?? 0) >= 90 ? 'Outstanding'
-            : (data.optimizedScore ?? 0) >= 80 ? 'Excellent'
-            : (data.optimizedScore ?? 0) >= 70 ? 'Good'
-            : (data.optimizedScore ?? 0) >= 55 ? 'Fair'
-            : 'Poor'
+      coverATS: data.coverATS ?? 0,
+      coverPersonalization: data.coverPersonalization ?? 0,
+      coverTone: data.coverTone ?? 0,
+      rating: getOptimizationRating(optimizedScore).label
     };
   };
 
@@ -167,7 +173,6 @@ export default function App() {
         else if (format === 'docx') await downloadCoverLetterDocx(data.coverLetter || '', 'Cover_Letter.docx');
         else if (format === 'pdf')  await downloadCoverLetterPdf(data.coverLetter || '', 'Cover_Letter.pdf');
       } else if (docType === 'Analysis Report') {
-        const report = buildReport(data);
         if (format === 'pdf')  await downloadAnalysisReportPdf(report, 'ResumeAI_Report.pdf');
         else if (format === 'docx') await downloadAnalysisReportDocx(report, 'ResumeAI_Report.docx');
       }
@@ -177,8 +182,9 @@ export default function App() {
     }
   };
 
-  const handleLeadComplete = (email) => {
+  const handleLeadComplete = (email, name) => {
     setCapturedEmail(email);
+    setCapturedName(name || '');
     setShowLeadCapture(false);
     trackEvent('email_captured', { email });
     if (pendingDownload) {
@@ -203,11 +209,11 @@ export default function App() {
     { label: 'Formatting',    value: report.formatting,           color: t.green }
   ] : [];
 
-  const coverMetrics = [
-    { label: 'ATS Compatibility', value: data.coverATS ?? 0,          color: t.accent },
-    { label: 'Personalization',   value: data.coverPersonalization ?? 0, color: t.green },
-    { label: 'Professional Tone', value: data.coverTone ?? 0,         color: t.amber }
-  ];
+  const coverMetrics = report ? [
+    { label: 'ATS Compatibility', value: report.coverATS,          color: t.accent },
+    { label: 'Personalization',   value: report.coverPersonalization, color: t.green },
+    { label: 'Professional Tone', value: report.coverTone,         color: t.amber }
+  ] : [];
 
   return (
     <div style={{ minHeight: '100vh', background: t.bg, color: t.text,
@@ -352,6 +358,7 @@ export default function App() {
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Optimized Resume Preview</span>
                 <Badge color="green" t={t}>Optimised</Badge>
               </div>
+              <AINotice t={t} />
               <MetricStrip items={resumeMetrics} t={t} />
               <ComparisonView
                 original={resumeText}
@@ -385,6 +392,7 @@ export default function App() {
               </div>
               {showCover && (
                 <>
+                  <AINotice t={t} />
                   <MetricStrip items={coverMetrics} t={t} />
                   <pre style={{ fontSize: 12, lineHeight: 1.8, color: t.textSub,
                     whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
@@ -437,6 +445,35 @@ export default function App() {
         .progress-bar { scrollbar-width: thin; scrollbar-color: ${t.border} ${t.elevated}; }
         *:focus-visible { outline: 2px solid ${t.accent}; outline-offset: 2px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Mobile responsiveness (320 / 360 / 390 / 768) ── */
+        html, body { overflow-x: hidden; }
+
+        /* Hero text scales down on small screens so it never overflows. */
+        @media (max-width: 480px) {
+          main[id="wizard"] { padding: 14px 12px 56px !important; }
+          h1 { font-size: 30px !important; line-height: 1.15 !important; }
+          section h1 + p { font-size: 15px !important; }
+        }
+        @media (max-width: 360px) {
+          h1 { font-size: 26px !important; }
+        }
+
+        /* Metric strip / score grid: 2 columns on phones, 4 on tablet+ */
+        @media (max-width: 480px) {
+          .resume-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+        @media (min-width: 768px) {
+          .resume-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+        }
+
+        /* Cover letter <pre>: ensure it wraps inside narrow viewports. */
+        pre { max-width: 100%; word-break: break-word; overflow-wrap: anywhere; }
+
+        /* Modals: never let the inner panel exceed the viewport minus padding. */
+        @media (max-width: 480px) {
+          .modal-panel { max-width: 100% !important; padding: 22px !important; border-radius: 18px !important; }
+        }
       `}</style>
     </div>
   );

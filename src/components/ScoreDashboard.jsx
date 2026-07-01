@@ -89,7 +89,7 @@ export function ScoreDashboard({ data, t }) {
         </span>
       </div>
 
-      <div style={{
+      <div className="resume-metric-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         gap: 12

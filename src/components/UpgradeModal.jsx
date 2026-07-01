@@ -27,7 +27,7 @@ export function UpgradeModal({ isOpen, onClose, t }) {
       backdropFilter: 'blur(4px)',
       padding: '20px'
     }}>
-      <div style={{
+      <div className="modal-panel" style={{
         background: t.surface,
         border: `1px solid ${t.border}`,
         borderRadius: 24,
