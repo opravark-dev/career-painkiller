@@ -1,1 +1,1 @@
-export const MODEL = 'openai/gpt-oss-120b:free';
+export const MODEL = 'deepseek/deepseek-chat-v3-0324:free';
