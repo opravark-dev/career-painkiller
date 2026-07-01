@@ -1,16 +1,39 @@
-# React + Vite
+# ResumeAI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI-powered resume optimizer that tailors your resume to any job description in under 30 seconds.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- ATS-optimized resume rewrite (bullets, reverse-chronological, structured sections)
+- Real ATS scoring on the OPTIMIZED resume (not the original)
+- Keyword match analysis with found / missing breakdown
+- Cover letter generator
+- DOCX + PDF export for resume, cover letter, and analysis report
+- Dark / light theme
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 18 + Vite
+- OpenRouter (open-source LLM) for rewriting and scoring
+- `docx` for Word export, `jspdf` for PDF export
+- Vercel serverless functions (`/api/generate`, `/api/leads`)
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+## Environment Variables
+
+Set in `.env.local` (local) and the Vercel project (production):
+
+- `OPENROUTER_API_KEY` — required for `/api/generate`
+- `GOOGLE_SHEET_WEBHOOK_URL` — optional Apps Script webhook for `/api/leads`
+
+## Branding
+
+All references to the previous "Career Painkiller" working name have been removed.
+The product, Vercel project, manifest, page title, and OpenRouter headers are all
+`ResumeAI`.

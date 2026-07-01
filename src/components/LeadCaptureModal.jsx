@@ -1,35 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Btn } from './Btn';
 
 export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
+  // Reset state every time the modal is opened so a previous submission
+  // never leaks its email/consent into the next one.
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      setEmail('');
+      setConsent(false);
+      setLoading(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
-    if (!email || !consent) return;
+    const trimmedEmail = (email || '').trim();
+    if (!trimmedEmail || !consent) return;
     setLoading(true);
+
+    const payload = {
+      email: trimmedEmail,
+      consent: true,
+      score: typeof score === 'number' ? score : 0,
+      timestamp: new Date().toISOString()
+    };
+    console.log('[LeadCapture] Submitting payload:', payload);
 
     try {
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          consent,
-          score: score || 0,
-        }),
+        body: JSON.stringify(payload),
       });
+      const raw = await res.text();
+      console.log('[LeadCapture] /api/leads raw response:', raw);
 
-      if (!res.ok) throw new Error('Lead capture failed');
-
-      onComplete(email);
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch {}
+      if (!res.ok || (parsed && parsed.success === false)) {
+        throw new Error(parsed?.error || `Lead endpoint returned ${res.status}`);
+      }
+      onComplete(trimmedEmail);
     } catch (e) {
-      console.error('Lead capture error:', e);
-      // We still complete the flow so the user can download their resume
-      onComplete(email);
+      console.error('[LeadCapture] error:', e);
+      // We still complete the flow so the user can download their resume.
+      onComplete(trimmedEmail);
     } finally {
       setLoading(false);
     }
@@ -121,7 +141,7 @@ export function LeadCaptureModal({ isOpen, onClose, onComplete, t, score }) {
 
           <Btn
             t={t}
-            disabled={!email || !consent || loading}
+            disabled={!email.trim() || !consent || loading}
             onClick={handleSubmit}
           >
             {loading ? 'Processing...' : 'Get My Resume →'}

@@ -1,5 +1,5 @@
 {
-  "name": "taylr",
+  "name": "resumeai",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "docx": "^9.7.1",
+    "file-saver": "^2.0.5",
     "jspdf": "^4.2.1",
     "pdfjs-dist": "^4.4.168",
     "react": "^18.3.1",

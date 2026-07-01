@@ -1,0 +1,12 @@
+{
+  "name": "ResumeAI — AI Resume Optimizer",
+  "short_name": "ResumeAI",
+  "description": "Tailor your resume to any job description in seconds using AI.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

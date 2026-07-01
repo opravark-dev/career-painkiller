@@ -2,7 +2,13 @@ import React from 'react';
 import { Badge } from './Badge';
 
 export function InsightPanel({ data, t }) {
-  const { foundKeywords = [], missingKeywords = [], feedback = [] } = data;
+  // Show keywords from the OPTIMIZED resume (Step D) — these are the ones
+  // the candidate should now know about.
+  const {
+    optimizedFoundKeywords: foundKeywords = [],
+    optimizedMissingKeywords: missingKeywords = [],
+    feedback = []
+  } = data || {};
 
   // Split missing keywords into "Critical" and "Nice to Have"
   const splitIndex = Math.ceil(missingKeywords.length / 2);
